@@ -8,6 +8,6 @@ const menuScheam = mongoose.Schema({
   price: Number,
 });
 
-const Menu = mongoose.model("Menu", menuScheam);
+const Menu = mongoose.model("menus", menuScheam);
 
 export default Menu;
