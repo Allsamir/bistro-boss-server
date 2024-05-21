@@ -22,6 +22,15 @@ router.get("/reviews", async (req, res) => {
   }
 });
 //Carts Collection
+router.get("/carts", async (req, res) => {
+  try {
+    const { email } = req.query;
+    const result = await Cart.find({ email: email }, "cartItems");
+    res.status(200).send(result);
+  } catch (err) {
+    console.error(err);
+  }
+});
 router.post("/carts", async (req, res) => {
   try {
     const { email, cartItems } = req.body;
