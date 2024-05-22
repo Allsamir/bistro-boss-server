@@ -27,7 +27,7 @@ router.get("/carts", async (req, res) => {
     const { email } = req.query;
     const result = await Cart.find({ email: email }, "cartItems");
     const [cart] = result;
-    const cartItems = await Menu.find({ _id: { $in: cart.cartItems } });
+    const cartItems = await Menu.find({ _id: { $in: cart?.cartItems } });
     res.status(200).send(cartItems);
   } catch (err) {
     console.error(err);
@@ -60,6 +60,26 @@ router.post("/carts", async (req, res) => {
       );
       res.status(200).send({ message: "Food added to your cart" });
     }
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+router.patch("/carts", async (req, res) => {
+  try {
+    const { id, email } = req.query;
+    const result = await Cart.findOneAndUpdate(
+      { email: email },
+      {
+        $pull: {
+          cartItems: id,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    if (result) res.status(200).send({ message: "Deleted from your cart" });
   } catch (err) {
     console.error(err);
   }
