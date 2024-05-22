@@ -26,11 +26,14 @@ router.get("/carts", async (req, res) => {
   try {
     const { email } = req.query;
     const result = await Cart.find({ email: email }, "cartItems");
-    res.status(200).send(result);
+    const [cart] = result;
+    const cartItems = await Menu.find({ _id: { $in: cart.cartItems } });
+    res.status(200).send(cartItems);
   } catch (err) {
     console.error(err);
   }
 });
+
 router.post("/carts", async (req, res) => {
   try {
     const { email, cartItems } = req.body;
