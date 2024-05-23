@@ -1,4 +1,4 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import Menu from "../models/menu.js";
 import Review from "../models/review.js";
 import Cart from "../models/cart.js";
@@ -30,7 +30,8 @@ router.post("/users", async (req, res) => {
     const newUser = new User(user);
     await newUser.save().then(() => res.status(200).send({ success: true }));
   } catch (err) {
-    console.error(err);
+    console.error("User already exists");
+    res.send({ success: false });
   }
 });
 

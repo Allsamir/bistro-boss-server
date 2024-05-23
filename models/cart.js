@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 
 const cartSchema = mongoose.Schema({
-  email: String,
+  email: {
+    type: String,
+    unique: true,
+  },
   cartItems: [String],
 });
 
