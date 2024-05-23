@@ -31,6 +31,11 @@ router.get("/users", async (req, res) => {
     console.error(err);
   }
 });
+router.get("/single-user", async (req, res) => {
+  const { email } = req.query;
+  const user = await User.find({ email: email }, "role");
+  res.status(200).send(user);
+});
 router.post("/users", async (req, res) => {
   try {
     const user = req.body;
@@ -45,7 +50,7 @@ router.post("/users", async (req, res) => {
 router.patch("/users", async (req, res) => {
   try {
     const { id } = req.query;
-    const update = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       { _id: id },
       {
         role: "admin",
