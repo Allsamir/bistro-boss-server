@@ -23,7 +23,14 @@ router.get("/reviews", async (req, res) => {
   }
 });
 // Users Collection
-
+router.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).send(users);
+  } catch (err) {
+    console.error(err);
+  }
+});
 router.post("/users", async (req, res) => {
   try {
     const user = req.body;
@@ -33,6 +40,20 @@ router.post("/users", async (req, res) => {
     console.error("User already exists");
     res.send({ success: false });
   }
+});
+
+router.patch("/users", async (req, res) => {
+  try {
+    const { id } = req.query;
+    const update = await User.findByIdAndUpdate(
+      { _id: id },
+      {
+        role: "admin",
+      },
+      { new: true },
+    );
+    res.status(200).send({ message: "Admin Created" });
+  } catch (err) {}
 });
 
 //Carts Collection
