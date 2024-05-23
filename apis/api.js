@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import Menu from "../models/menu.js";
 import Review from "../models/review.js";
 import Cart from "../models/cart.js";
+import User from "../models/user.js";
 const router = Router();
 //Menu Collection
 router.get("/menus", async (req, res) => {
@@ -21,6 +22,18 @@ router.get("/reviews", async (req, res) => {
     console.error(err);
   }
 });
+// Users Collection
+
+router.post("/users", async (req, res) => {
+  try {
+    const user = req.body;
+    const newUser = new User(user);
+    await newUser.save().then(() => res.status(200).send({ success: true }));
+  } catch (err) {
+    console.error(err);
+  }
+});
+
 //Carts Collection
 router.get("/carts", async (req, res) => {
   try {
