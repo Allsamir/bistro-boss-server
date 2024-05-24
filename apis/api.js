@@ -1,8 +1,12 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { Router } from "express";
 import Menu from "../models/menu.js";
 import Review from "../models/review.js";
 import Cart from "../models/cart.js";
 import User from "../models/user.js";
+import jwt from "jsonwebtoken";
+import verifyToken from "../middlewares/verifyToken.js";
 const router = Router();
 //Menu Collection
 router.get("/menus", async (req, res) => {
@@ -23,7 +27,7 @@ router.get("/reviews", async (req, res) => {
   }
 });
 // Users Collection
-router.get("/users", async (req, res) => {
+router.get("/users", verifyToken, async (req, res) => {
   try {
     const users = await User.find({});
     res.status(200).send(users);
@@ -34,7 +38,8 @@ router.get("/users", async (req, res) => {
 router.get("/single-user", async (req, res) => {
   const { email } = req.query;
   const user = await User.find({ email: email }, "role");
-  res.status(200).send(user);
+  const [role] = user;
+  res.status(200).send(role);
 });
 router.post("/users", async (req, res) => {
   try {
@@ -60,7 +65,16 @@ router.patch("/users", async (req, res) => {
     res.status(200).send({ message: "Admin Created" });
   } catch (err) {}
 });
-
+router.delete("/users", async (req, res) => {
+  try {
+    const { id, email } = req.query;
+    await User.findByIdAndDelete({ _id: id });
+    await Cart.findOneAndDelete({ email: email });
+    res.status(200).send({ success: true });
+  } catch (err) {
+    console.error(err);
+  }
+});
 //Carts Collection
 router.get("/carts", async (req, res) => {
   try {
@@ -122,6 +136,23 @@ router.patch("/carts", async (req, res) => {
     if (result) res.status(200).send({ message: "Deleted from your cart" });
   } catch (err) {
     console.error(err);
+  }
+});
+//JWT api
+
+router.post("/jwt", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const token = jwt.sign(
+      {
+        email: email,
+      },
+      process.env.TOKEN_SECRET,
+      { expiresIn: "1h" },
+    );
+    res.status(200).send({ token: token });
+  } catch (err) {
+    console.log(err);
   }
 });
 
