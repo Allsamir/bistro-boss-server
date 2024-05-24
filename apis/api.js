@@ -6,9 +6,10 @@ import Review from "../models/review.js";
 import Cart from "../models/cart.js";
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
-import verifyToken from "../middlewares/verifyToken.js";
+import { verifyToken, verifyAdmin } from "../middlewares/verifyToken.js";
 const router = Router();
 //Menu Collection
+
 router.get("/menus", async (req, res) => {
   try {
     const result = await Menu.find({});
@@ -27,7 +28,7 @@ router.get("/reviews", async (req, res) => {
   }
 });
 // Users Collection
-router.get("/users", verifyToken, async (req, res) => {
+router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const users = await User.find({});
     res.status(200).send(users);
@@ -35,10 +36,12 @@ router.get("/users", verifyToken, async (req, res) => {
     console.error(err);
   }
 });
-router.get("/single-user", async (req, res) => {
+router.get("/user/admin", verifyToken, async (req, res) => {
+  if (req.user.email !== req.query.email) {
+    return res.status(403).send({ message: "Forbiden Access" });
+  }
   const { email } = req.query;
-  const user = await User.find({ email: email }, "role");
-  const [role] = user;
+  const role = await User.findOne({ email: email }, "role");
   res.status(200).send(role);
 });
 router.post("/users", async (req, res) => {
@@ -52,7 +55,7 @@ router.post("/users", async (req, res) => {
   }
 });
 
-router.patch("/users", async (req, res) => {
+router.patch("/users", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { id } = req.query;
     await User.findByIdAndUpdate(
@@ -65,7 +68,7 @@ router.patch("/users", async (req, res) => {
     res.status(200).send({ message: "Admin Created" });
   } catch (err) {}
 });
-router.delete("/users", async (req, res) => {
+router.delete("/users", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { id, email } = req.query;
     await User.findByIdAndDelete({ _id: id });
@@ -76,7 +79,7 @@ router.delete("/users", async (req, res) => {
   }
 });
 //Carts Collection
-router.get("/carts", async (req, res) => {
+router.get("/carts", verifyToken, async (req, res) => {
   try {
     const { email } = req.query;
     const result = await Cart.find({ email: email }, "cartItems");
@@ -88,7 +91,7 @@ router.get("/carts", async (req, res) => {
   }
 });
 
-router.post("/carts", async (req, res) => {
+router.post("/carts", verifyToken, async (req, res) => {
   try {
     const { email, cartItems } = req.body;
     const userEmailFromDB = await Cart.find({ email: email });
@@ -119,7 +122,7 @@ router.post("/carts", async (req, res) => {
   }
 });
 
-router.patch("/carts", async (req, res) => {
+router.patch("/carts", verifyToken, async (req, res) => {
   try {
     const { id, email } = req.query;
     const result = await Cart.findOneAndUpdate(
