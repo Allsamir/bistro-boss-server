@@ -19,11 +19,54 @@ router.get("/menus", async (req, res) => {
   }
 });
 
+router.get("/menus/:menuID", async (req, res) => {
+  try {
+    const { menuID } = req.params;
+    const singleMenu = await Menu.findById({ _id: menuID });
+    res.status(200).send(singleMenu);
+  } catch (err) {
+    console.error(err);
+  }
+});
+
 router.post("/menus", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const newMenu = new Menu(req.body);
     await newMenu.save();
     res.status(200).send({ success: true, message: "Menu Added Successfully" });
+  } catch (err) {
+    console.error(err);
+  }
+});
+router.patch("/menus/:menuID", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const updatedItem = req.body;
+    const { menuID } = req.params;
+    await Menu.findByIdAndUpdate(
+      { _id: menuID },
+      {
+        name: updatedItem.name,
+        category: updatedItem.category,
+        image: updatedItem.image,
+        recipe: updatedItem.recipe,
+        price: updatedItem.price,
+      },
+      {
+        new: true,
+      },
+    );
+    res
+      .status(200)
+      .send({ success: true, message: "Menu successfully updated" });
+  } catch (err) {
+    console.error(err);
+  }
+});
+router.delete("/menus", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.query;
+    await Menu.findByIdAndDelete({ _id: id });
+    res.status(200).send({ success: true, message: "Menu Deleted!" });
   } catch (err) {
     console.error(err);
   }
