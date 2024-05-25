@@ -18,6 +18,16 @@ router.get("/menus", async (req, res) => {
     console.error(err);
   }
 });
+
+router.post("/menus", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const newMenu = new Menu(req.body);
+    await newMenu.save();
+    res.status(200).send({ success: true, message: "Menu Added Successfully" });
+  } catch (err) {
+    console.error(err);
+  }
+});
 //Reviews Collection
 router.get("/reviews", async (req, res) => {
   try {
