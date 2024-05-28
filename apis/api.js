@@ -7,6 +7,8 @@ import Cart from "../models/cart.js";
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
 import { verifyToken, verifyAdmin } from "../middlewares/verifyToken.js";
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const router = Router();
 //Menu Collection
 
@@ -209,6 +211,26 @@ router.post("/jwt", async (req, res) => {
     res.status(200).send({ token: token });
   } catch (err) {
     console.log(err);
+  }
+});
+
+// payment api
+
+router.post("/create-payment-intent", verifyToken, async (req, res) => {
+  try {
+    const { price } = req.body;
+    const paymentIntent = await stripe.paymentIntents.create({
+      currency: "usd",
+      amount: price,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    res.status(400).send({
+      errorMessage: error.message,
+    });
   }
 });
 
