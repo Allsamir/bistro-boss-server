@@ -217,6 +217,12 @@ router.post("/jwt", async (req, res) => {
 
 // payment api
 
+router.get("/payments", verifyToken, async (req, res) => {
+  const { email } = req.query;
+  const result = await Payment.find({ email: email });
+  res.status(200).send(result);
+});
+
 router.post("/create-payment-intent", verifyToken, async (req, res) => {
   try {
     const { price } = req.body;
