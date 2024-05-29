@@ -3,6 +3,7 @@ dotenv.config();
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 const verifyToken = (req, res, next) => {
+  // verify jwt token
   if (req.headers.token === "null") {
     return res.status(401).send({ message: "Unauthorized Access" });
   }
@@ -16,6 +17,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 const verifyAdmin = async (req, res, next) => {
+  // verify user role or admin
   const { email } = req.user;
   const user = await User.findOne({ email: email });
   const isAdmin = user?.role === "admin";

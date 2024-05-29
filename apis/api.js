@@ -11,9 +11,11 @@ import { verifyToken, verifyAdmin } from "../middlewares/verifyToken.js";
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const router = Router();
+
 //Menu Collection
 
 router.get("/menus", async (req, res) => {
+  // to get all the menus in order page
   try {
     const result = await Menu.find({});
     res.status(200).send(result);
@@ -23,6 +25,7 @@ router.get("/menus", async (req, res) => {
 });
 
 router.get("/menus/:menuID", async (req, res) => {
+  // to get a single menu
   try {
     const { menuID } = req.params;
     const singleMenu = await Menu.findById({ _id: menuID });
@@ -33,6 +36,7 @@ router.get("/menus/:menuID", async (req, res) => {
 });
 
 router.post("/menus", verifyToken, verifyAdmin, async (req, res) => {
+  // to add a new menu or item in the app
   try {
     const newMenu = new Menu(req.body);
     await newMenu.save();
@@ -42,6 +46,7 @@ router.post("/menus", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 router.patch("/menus/:menuID", verifyToken, verifyAdmin, async (req, res) => {
+  // to update an existing item or menu
   try {
     const updatedItem = req.body;
     const { menuID } = req.params;
@@ -66,6 +71,7 @@ router.patch("/menus/:menuID", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 router.delete("/menus", verifyToken, verifyAdmin, async (req, res) => {
+  // to delete a menu or item in the app
   try {
     const { id } = req.query;
     await Menu.findByIdAndDelete({ _id: id });
@@ -76,6 +82,7 @@ router.delete("/menus", verifyToken, verifyAdmin, async (req, res) => {
 });
 //Reviews Collection
 router.get("/reviews", async (req, res) => {
+  // to get all the reviews of users
   try {
     const result = await Review.find({});
     res.status(200).send(result);
@@ -85,6 +92,7 @@ router.get("/reviews", async (req, res) => {
 });
 // Users Collection
 router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
+  // to get all the existing users
   try {
     const users = await User.find({});
     res.status(200).send(users);
@@ -93,6 +101,7 @@ router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 router.get("/user/admin", verifyToken, async (req, res) => {
+  // to get the role of the user
   if (req.user.email !== req.query.email) {
     return res.status(403).send({ message: "Forbiden Access" });
   }
@@ -101,6 +110,7 @@ router.get("/user/admin", verifyToken, async (req, res) => {
   res.status(200).send(role);
 });
 router.post("/users", async (req, res) => {
+  // to register a user in the app in the register page
   try {
     const user = req.body;
     const newUser = new User(user);
@@ -112,6 +122,7 @@ router.post("/users", async (req, res) => {
 });
 
 router.patch("/users", verifyToken, verifyAdmin, async (req, res) => {
+  // to update the user role
   try {
     const { id } = req.query;
     await User.findByIdAndUpdate(
@@ -125,6 +136,7 @@ router.patch("/users", verifyToken, verifyAdmin, async (req, res) => {
   } catch (err) {}
 });
 router.delete("/users", verifyToken, verifyAdmin, async (req, res) => {
+  // to delete the user from the app{admin only}
   try {
     const { id, email } = req.query;
     await User.findByIdAndDelete({ _id: id });
@@ -136,6 +148,7 @@ router.delete("/users", verifyToken, verifyAdmin, async (req, res) => {
 });
 //Carts Collection
 router.get("/carts", verifyToken, async (req, res) => {
+  // to get the users cart details
   try {
     const { email } = req.query;
     const result = await Cart.find({ email: email }, "cartItems");
@@ -148,6 +161,7 @@ router.get("/carts", verifyToken, async (req, res) => {
 });
 
 router.post("/carts", verifyToken, async (req, res) => {
+  // to add a new item in the user's cart
   try {
     const { email, cartItems } = req.body;
     const userEmailFromDB = await Cart.find({ email: email });
@@ -179,6 +193,7 @@ router.post("/carts", verifyToken, async (req, res) => {
 });
 
 router.patch("/carts", verifyToken, async (req, res) => {
+  // to delete an item from the user's cart
   try {
     const { id, email } = req.query;
     const result = await Cart.findOneAndUpdate(
@@ -200,6 +215,7 @@ router.patch("/carts", verifyToken, async (req, res) => {
 //JWT api
 
 router.post("/jwt", async (req, res) => {
+  // creating or generating jwt token to verify api and user
   try {
     const { email } = req.body;
     const token = jwt.sign(
@@ -218,12 +234,14 @@ router.post("/jwt", async (req, res) => {
 // payment api
 
 router.get("/payments", verifyToken, async (req, res) => {
+  // to get the payments of the user
   const { email } = req.query;
   const result = await Payment.find({ email: email });
   res.status(200).send(result);
 });
 
 router.post("/create-payment-intent", verifyToken, async (req, res) => {
+  // to create a payment intent for stripe payment
   try {
     const { price } = req.body;
     const paymentIntent = await stripe.paymentIntents.create({
@@ -242,6 +260,7 @@ router.post("/create-payment-intent", verifyToken, async (req, res) => {
 });
 
 router.post(`/payments`, verifyToken, async (req, res) => {
+  // to add a paymentinfo of user
   const { paymentInfo } = req.body;
   const savePaymentInfo = new Payment(paymentInfo);
   await savePaymentInfo.save();
@@ -258,6 +277,32 @@ router.post(`/payments`, verifyToken, async (req, res) => {
   );
   if (result) {
     res.status(200).send({ success: true });
+  }
+});
+
+// App stats
+
+router.get("/app-stats", async (req, res) => {
+  // app stats of the app
+  try {
+    const users = await User.countDocuments();
+    const menus = await Menu.countDocuments();
+    const orders = await Payment.countDocuments();
+    // this is not the best way
+    const revenueResult = await Payment.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+    ]);
+    const revenue =
+      revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+
+    res.send({ users, menus, orders, revenue });
+  } catch (error) {
+    console.error(error);
   }
 });
 
