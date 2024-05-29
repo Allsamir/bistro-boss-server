@@ -5,6 +5,7 @@ import Menu from "../models/menu.js";
 import Review from "../models/review.js";
 import Cart from "../models/cart.js";
 import User from "../models/user.js";
+import Payment from "../models/payments.js";
 import jwt from "jsonwebtoken";
 import { verifyToken, verifyAdmin } from "../middlewares/verifyToken.js";
 import Stripe from "stripe";
@@ -231,6 +232,26 @@ router.post("/create-payment-intent", verifyToken, async (req, res) => {
     res.status(400).send({
       errorMessage: error.message,
     });
+  }
+});
+
+router.post(`/payments`, verifyToken, async (req, res) => {
+  const { paymentInfo } = req.body;
+  const savePaymentInfo = new Payment(paymentInfo);
+  await savePaymentInfo.save();
+  const result = await Cart.findOneAndUpdate(
+    { email: paymentInfo.email },
+    {
+      $pull: {
+        cartItems: { $in: paymentInfo.order },
+      },
+    },
+    {
+      new: true,
+    },
+  );
+  if (result) {
+    res.status(200).send({ success: true });
   }
 });
 
