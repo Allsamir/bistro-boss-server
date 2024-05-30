@@ -282,7 +282,7 @@ router.post(`/payments`, verifyToken, async (req, res) => {
 
 // App stats
 
-router.get("/app-stats", verifyToken, async (req, res) => {
+router.get("/app-stats", verifyToken, verifyAdmin, async (req, res) => {
   // app stats of the app
   try {
     const users = await User.countDocuments();
@@ -308,7 +308,7 @@ router.get("/app-stats", verifyToken, async (req, res) => {
 
 // order stats api
 
-router.get("/order-stats", async (req, res) => {
+router.get("/order-stats", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const order = await Payment.aggregate([
       { $unwind: "$order" },
