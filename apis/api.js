@@ -282,7 +282,7 @@ router.post(`/payments`, verifyToken, async (req, res) => {
 
 // App stats
 
-router.get("/app-stats", async (req, res) => {
+router.get("/app-stats", verifyToken, async (req, res) => {
   // app stats of the app
   try {
     const users = await User.countDocuments();
@@ -307,5 +307,49 @@ router.get("/app-stats", async (req, res) => {
 });
 
 // order stats api
+
+router.get("/order-stats", async (req, res) => {
+  try {
+    const order = await Payment.aggregate([
+      { $unwind: "$order" },
+      {
+        $addFields: {
+          order: { $toObjectId: "$order" },
+        },
+      },
+      {
+        $lookup: {
+          from: "menus",
+          localField: "order",
+          foreignField: "_id",
+          as: "menuDetails",
+        },
+      },
+      { $unwind: "$menuDetails" },
+      {
+        $group: {
+          _id: "$menuDetails.category",
+          totalRevenue: { $sum: "$menuDetails.price" },
+          quantity: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          totalRevenue: 1,
+          quantity: 1,
+        },
+      },
+    ]);
+
+    res.json(order);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching order statistics" });
+  }
+});
 
 export default router;
