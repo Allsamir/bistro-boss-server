@@ -90,6 +90,19 @@ router.get("/reviews", async (req, res) => {
     console.error(err);
   }
 });
+router.post("/reviews", async (req, res) => {
+  try {
+    const { name, details, rating } = req.body;
+    const newReview = new Review({ name, details, rating });
+    await newReview.save();
+    res
+      .status(201)
+      .send({ success: true, message: "Thanks for you kind review" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
 // Users Collection
 router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   // to get all the existing users
@@ -308,7 +321,7 @@ router.get("/app-stats", verifyToken, verifyAdmin, async (req, res) => {
 
 // order stats api
 
-router.get("/order-stats", async (req, res) => {
+router.get("/order-stats", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const order = await Payment.aggregate([
       { $unwind: "$order" },
@@ -354,22 +367,28 @@ router.get("/order-stats", async (req, res) => {
 
 // user stats api
 
-router.get(`/user-stats`, async (req, res) => {
-  const { email } = req.query;
-  const payments = await Payment.countDocuments({ email: email });
-  const reviews = await Review.countDocuments({ email: email });
-  const orders = await Payment.aggregate([
-    { $match: { email: email } },
-    { $unwind: "$order" },
-    { $group: { _id: "$email", totalOrders: { $sum: 1 } } },
-    {
-      $project: {
-        _id: 0,
-        totalOrders: 1,
+router.get(`/user-stats`, verifyToken, async (req, res) => {
+  try {
+    const { email } = req.query;
+    const payments = await Payment.countDocuments({ email: email });
+    const reviews = await Review.countDocuments({ email: email });
+    const orders = await Payment.aggregate([
+      { $match: { email: email } },
+      { $unwind: "$order" },
+      { $group: { _id: "$email", totalOrders: { $sum: 1 } } },
+      {
+        $project: {
+          _id: 0,
+          totalOrders: 1,
+        },
       },
-    },
-  ]);
-  res.send({ orders, payments, reviews });
+    ]);
+    const [totalOrders] = orders;
+    res.send({ orders: totalOrders.totalOrders, payments, reviews });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 export default router;
