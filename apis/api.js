@@ -90,7 +90,7 @@ router.get("/reviews", async (req, res) => {
     console.error(err);
   }
 });
-router.post("/reviews", async (req, res) => {
+router.post("/reviews", verifyToken, async (req, res) => {
   try {
     const { name, details, rating } = req.body;
     const newReview = new Review({ name, details, rating });
