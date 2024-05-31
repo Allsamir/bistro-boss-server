@@ -1,5 +1,5 @@
 {
-  "name": "bistro-boss-server",
+  "name": "cafe-gratitude-server",
   "version": "1.0.0",
   "description": "This is the server of bistro-boss restaurant management web app",
   "main": "index.js",

@@ -308,7 +308,7 @@ router.get("/app-stats", verifyToken, verifyAdmin, async (req, res) => {
 
 // order stats api
 
-router.get("/order-stats", verifyToken, verifyAdmin, async (req, res) => {
+router.get("/order-stats", async (req, res) => {
   try {
     const order = await Payment.aggregate([
       { $unwind: "$order" },
@@ -350,6 +350,26 @@ router.get("/order-stats", verifyToken, verifyAdmin, async (req, res) => {
       .status(500)
       .json({ error: "An error occurred while fetching order statistics" });
   }
+});
+
+// user stats api
+
+router.get(`/user-stats`, async (req, res) => {
+  const { email } = req.query;
+  const payments = await Payment.countDocuments({ email: email });
+  const reviews = await Review.countDocuments({ email: email });
+  const orders = await Payment.aggregate([
+    { $match: { email: email } },
+    { $unwind: "$order" },
+    { $group: { _id: "$email", totalOrders: { $sum: 1 } } },
+    {
+      $project: {
+        _id: 0,
+        totalOrders: 1,
+      },
+    },
+  ]);
+  res.send({ orders, payments, reviews });
 });
 
 export default router;
