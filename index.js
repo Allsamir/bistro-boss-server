@@ -9,10 +9,7 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://cafe-gratitude-server.vercel.app",
-    ],
+    origin: ["http://localhost:5173", "https://bistro-boss-03.web.app"],
     credentials: true,
   }),
 );

@@ -5,7 +5,7 @@ Welcome to Cafe Gratitude Management WebApp! This web application provides a pla
 - **User Dasboard**: User Dasboard is given in this app so that a user can see their stats with the app.
 - **Admin Dasboard**: Admin Dashboard is there to manage this app. An Admin can easily Manage the app.
 - **Responsive Design**: The web app is designed to be responsive, ensuring a seamless experience across different devices and screen sizes.
-- **Live Demo**: Visit the live site [] to explore the features firsthand.
+- **Live Demo**: Visit the live site [https://bistro-boss-03.web.app/] to explore the features firsthand.
 
 ## Getting Started
 
