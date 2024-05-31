@@ -369,9 +369,9 @@ router.get("/order-stats", verifyToken, verifyAdmin, async (req, res) => {
 
 router.get(`/user-stats`, verifyToken, async (req, res) => {
   try {
-    const { email } = req.query;
+    const { email, name } = req.query;
     const payments = await Payment.countDocuments({ email: email });
-    const reviews = await Review.countDocuments({ email: email });
+    const reviews = await Review.countDocuments({ name: name });
     const orders = await Payment.aggregate([
       { $match: { email: email } },
       { $unwind: "$order" },
