@@ -307,9 +307,9 @@ router.post("/ssl-payment", verifyToken, async (req, res) => {
       total_amount: paymentInfo.price,
       currency: "USD",
       tran_id: txID,
-      success_url: "http://localhost:3000/success-payment", // change later with server domain
-      fail_url: "http://localhost:3000/fail-payment",
-      cancel_url: "http://localhost:3000/cancel-payment",
+      success_url: "https://cafe-gratitude-server.vercel.app/success-payment", // change later with server domain
+      fail_url: "https://cafe-gratitude-server.vercel.app/fail-payment",
+      cancel_url: "https://cafe-gratitude-server.vercel.app/cancel-payment",
       cus_name: paymentInfo.name,
       cus_email: paymentInfo.email,
       product_category: "General",
@@ -390,7 +390,9 @@ router.post("/success-payment", async (req, res) => {
         },
       );
       if (clearCart) {
-        res.redirect("http://localhost:5173/dashboard/payment-ssl-success");
+        res.redirect(
+          "https://bistro-boss-03.web.app/dashboard/payment-ssl-success",
+        );
       }
     }
   } catch (error) {
@@ -399,10 +401,10 @@ router.post("/success-payment", async (req, res) => {
 });
 
 router.post(`/fail-payment`, async (req, res) => {
-  res.redirect("http://localhost:5173/dashboard/cart");
+  res.redirect("https://bistro-boss-03.web.app/dashboard/cart");
 });
 router.post(`/cancel-payment`, async (req, res) => {
-  res.redirect("http://localhost:5173/dashboard/cart");
+  res.redirect("https://bistro-boss-03.web.app/dashboard/cart");
 });
 
 // App stats
