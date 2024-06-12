@@ -9,6 +9,8 @@ import Payment from "../models/payments.js";
 import jwt from "jsonwebtoken";
 import { verifyToken, verifyAdmin } from "../middlewares/verifyToken.js";
 import Stripe from "stripe";
+import mongoose from "mongoose";
+import axios from "axios";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const router = Router();
 
@@ -236,7 +238,7 @@ router.post("/jwt", async (req, res) => {
         email: email,
       },
       process.env.TOKEN_SECRET,
-      { expiresIn: "1h" },
+      { expiresIn: "24h" },
     );
     res.status(200).send({ token: token });
   } catch (err) {
@@ -291,6 +293,116 @@ router.post(`/payments`, verifyToken, async (req, res) => {
   if (result) {
     res.status(200).send({ success: true });
   }
+});
+
+// SSL commerce payment getway apis
+
+router.post("/ssl-payment", verifyToken, async (req, res) => {
+  try {
+    const paymentInfo = req.body;
+    const txID = new mongoose.Types.ObjectId().toString();
+    const initialData = {
+      store_id: "samir66697a417129a",
+      store_passwd: "samir66697a417129a@ssl",
+      total_amount: paymentInfo.price,
+      currency: "USD",
+      tran_id: txID,
+      success_url: "http://localhost:3000/success-payment", // change later with server domain
+      fail_url: "http://localhost:3000/fail-payment",
+      cancel_url: "http://localhost:3000/cancel-payment",
+      cus_name: paymentInfo.name,
+      cus_email: paymentInfo.email,
+      product_category: "General",
+      cus_add1: "Dhaka",
+      cus_add2: "Dhaka",
+      cus_city: "Dhaka",
+      cus_state: "Dhaka",
+      cus_postcode: "1000",
+      cus_country: "Bangladesh",
+      cus_phone: "01711111111",
+      cus_fax: "01711111111",
+      shipping_method: "NO",
+      product_name: "Foods",
+      product_category: "Food",
+      product_profile: "physical-goods",
+      multi_card_name: "mastercard,visacard,amexcard",
+      value_a: "ref001_A",
+      value_b: "ref002_B",
+      value_c: "ref003_C",
+      value_d: "ref004_D",
+    };
+    const respone = await axios({
+      method: "post",
+      url: "https://sandbox.sslcommerz.com/gwprocess/v4/api.php",
+      data: initialData,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    if (respone.statusText === "OK") {
+      const newPaymentInfo = new Payment({
+        email: paymentInfo.email,
+        name: paymentInfo.name,
+        price: paymentInfo.price,
+        order: paymentInfo.order,
+        status: paymentInfo.status,
+        tran_id: txID,
+      });
+      await newPaymentInfo
+        .save()
+        .then(() => console.log("SSL Paymentinfo saved"));
+    }
+    res.status(200).json({
+      paymentURL: respone.data.GatewayPageURL,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+router.post("/success-payment", async (req, res) => {
+  try {
+    const responseFromSSLCommerce = req.body;
+    if (responseFromSSLCommerce.status !== "VALID") {
+      return res.status(401).send("Unauthorized Access");
+    }
+    const updatePaymentStatus = await Payment.findOneAndUpdate(
+      {
+        tran_id: responseFromSSLCommerce.tran_id,
+      },
+      {
+        status: "Successfull Payment",
+      },
+      {
+        new: true,
+      },
+    );
+    if (updatePaymentStatus) {
+      const clearCart = await Cart.findOneAndUpdate(
+        { email: updatePaymentStatus.email },
+        {
+          $pull: {
+            cartItems: { $in: updatePaymentStatus.order },
+          },
+        },
+        {
+          new: true,
+        },
+      );
+      if (clearCart) {
+        res.redirect("http://localhost:5173/dashboard/payment-ssl-success");
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+router.post(`/fail-payment`, async (req, res) => {
+  res.redirect("http://localhost:5173/dashboard/cart");
+});
+router.post(`/cancel-payment`, async (req, res) => {
+  res.redirect("http://localhost:5173/dashboard/cart");
 });
 
 // App stats

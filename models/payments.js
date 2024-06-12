@@ -8,6 +8,7 @@ const paymentSchema = new mongoose.Schema({
   time: Date,
   order: [String],
   status: String,
+  tran_id: String,
 });
 
 const Payment = new mongoose.model("Payment", paymentSchema);

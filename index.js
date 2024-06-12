@@ -14,6 +14,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(express.urlencoded());
 mongoose
   .connect(process.env.DATABASE_URI)
   .then(() => console.log("Database Connected"))
