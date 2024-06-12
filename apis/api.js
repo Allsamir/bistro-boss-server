@@ -302,8 +302,8 @@ router.post("/ssl-payment", verifyToken, async (req, res) => {
     const paymentInfo = req.body;
     const txID = new mongoose.Types.ObjectId().toString();
     const initialData = {
-      store_id: "samir66697a417129a",
-      store_passwd: "samir66697a417129a@ssl",
+      store_id: process.env.STORE_ID,
+      store_passwd: process.env.STORE_PASSWD,
       total_amount: paymentInfo.price,
       currency: "USD",
       tran_id: txID,
